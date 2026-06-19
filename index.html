@@ -11,25 +11,21 @@
     .wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 60px; }
     h1 { font-size: 22px; margin: 0 0 4px; }
     .lead { color: #6b7280; font-size: 14px; margin: 0 0 20px; }
-    .bar { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; margin-bottom: 22px; }
-    .bar label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: 6px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    input[type=text] { flex: 1; min-width: 240px; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; font-family: ui-monospace, monospace; }
-    button { border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+    button, a.btn { border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
     .btn { background: #0e5a52; color: #fff; }
     .btn.alt { background: #fff; color: #0b1020; border: 1px solid #d1d5db; }
-    .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
     .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .card .qrholder { width: 150px; height: 150px; }
-    .card .qrholder canvas, .card .qrholder img { width: 150px !important; height: 150px !important; display: block; }
+    .card img.qr { width: 150px; height: 150px; display: block; }
     .barkod { font-family: ui-monospace, monospace; font-weight: 800; font-size: 15px; }
     .tip { font-size: 11px; font-weight: 700; color: #fff; padding: 2px 9px; border-radius: 999px; }
     .icerik { font-size: 12px; color: #6b7280; min-height: 32px; }
     .url { font-size: 10px; color: #9ca3af; word-break: break-all; }
     .actions { display: flex; gap: 6px; }
-    .actions a, .actions button { font-size: 12px; padding: 6px 10px; }
-    a.open { background: #f3f4f6; color: #0b1020; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; }
+    .actions a { font-size: 12px; padding: 6px 10px; border-radius: 8px; text-decoration: none; }
+    a.open { background: #f3f4f6; color: #0b1020; }
+    a.dl { background: #fff; color: #0b1020; border: 1px solid #d1d5db; }
     @media print {
       .bar, .lead, h1, .noprint { display: none !important; }
       body { background: #fff; }
@@ -42,77 +38,41 @@
 <body>
   <div class="wrap">
     <h1>📦 DepoZeka — Koli QR Üreteci</h1>
-    <p class="lead">Her QR, telefonla okutulduğunda kolinin <b>içeriğini gösteren mobil sayfayı</b> açar. Aşağıdaki adresi kontrol edip QR'ları yazdırın.</p>
+    <p class="lead">Her QR, telefonla okutulduğunda kolinin <b>içeriğini gösteren mobil sayfayı</b> açar. QR'ları yazdırıp kolilerin üzerine yapıştırın.</p>
 
     <div class="bar noprint">
-      <label for="base">Yayın Adresi (urun.html'in bulunduğu klasör)</label>
-      <div class="row">
-        <input type="text" id="base" />
-        <button class="btn" id="apply">Yenile</button>
-        <button class="btn alt" id="print">🖨️ Tümünü Yazdır</button>
-      </div>
-      <p class="hint">Bu sayfayı GitHub Pages / Vercel'e koyduğunda adres otomatik dolar. Yerelde (file://) test ederken QR telefonla açılmaz — gerçek adrese koyduktan sonra QR üret.</p>
+      <button class="btn" onclick="window.print()">🖨️ Tümünü Yazdır</button>
     </div>
 
     <div class="grid" id="grid"></div>
   </div>
 
   <script src="data.js"></script>
-  <script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     var DEPO = window.DEPO;
-    var baseInput = document.getElementById("base");
+    var BASE = "https://cetinkayafatih.github.io/depozeka-qr/";
     var grid = document.getElementById("grid");
 
-    function defaultBase() {
-      var href = location.href.split("#")[0].split("?")[0];
-      return href.substring(0, href.lastIndexOf("/") + 1);
-    }
-    baseInput.value = defaultBase();
+    DEPO.kolis.forEach(function (k) {
+      var tip = DEPO.tip[k.tip];
+      var url = BASE + "urun.html?id=" + encodeURIComponent(k.barkod);
+      var img = "img/url/" + encodeURIComponent(k.barkod) + ".png";
+      var icerik = k.tip === "bitmis_urun" ? k.urun.ad : (k.kalemler.length + " çeşit malzeme · " + k.konum);
 
-    function targetUrl(base, barkod) {
-      if (!/\/$/.test(base)) base += "/";
-      return base + "urun.html?id=" + encodeURIComponent(barkod);
-    }
-
-    function build() {
-      var base = baseInput.value.trim() || defaultBase();
-      grid.innerHTML = "";
-      DEPO.kolis.forEach(function (k) {
-        var tip = DEPO.tip[k.tip];
-        var url = targetUrl(base, k.barkod);
-        var icerik = k.tip === "bitmis_urun" ? k.urun.ad : (k.kalemler.length + " çeşit malzeme · " + k.konum);
-
-        var card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML =
-          '<div class="qrholder"></div>' +
-          '<div class="barkod">' + k.barkod + '</div>' +
-          '<span class="tip" style="background:' + tip.renk + '">' + tip.kisa + '</span>' +
-          '<div class="icerik">' + icerik + '</div>' +
-          '<div class="actions noprint">' +
-            '<a class="open" href="' + url + '" target="_blank" rel="noopener">Aç</a>' +
-            '<button class="btn alt dl">PNG</button>' +
-          '</div>' +
-          '<div class="url">' + url + '</div>';
-        grid.appendChild(card);
-
-        var holder = card.querySelector(".qrholder");
-        new QRCode(holder, { text: url, width: 300, height: 300, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
-        var cv = holder.querySelector("canvas");
-        if (cv) { var im = holder.querySelector("img"); if (im) im.remove(); }
-
-        card.querySelector(".dl").addEventListener("click", function () {
-          var c = holder.querySelector("canvas");
-          var src = c ? c.toDataURL("image/png") : ((holder.querySelector("img") || {}).src || "");
-          if (src) { var a = document.createElement("a"); a.download = k.barkod + ".png"; a.href = src; a.click(); }
-        });
-      });
-    }
-
-    document.getElementById("apply").addEventListener("click", build);
-    document.getElementById("print").addEventListener("click", function () { window.print(); });
-    build();
+      var card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML =
+        '<img class="qr" src="' + img + '" alt="QR ' + k.barkod + '">' +
+        '<div class="barkod">' + k.barkod + '</div>' +
+        '<span class="tip" style="background:' + tip.renk + '">' + tip.kisa + '</span>' +
+        '<div class="icerik">' + icerik + '</div>' +
+        '<div class="actions noprint">' +
+          '<a class="open" href="' + url + '" target="_blank" rel="noopener">Aç</a>' +
+          '<a class="dl" href="' + img + '" download="' + k.barkod + '.png">PNG</a>' +
+        '</div>' +
+        '<div class="url">' + url + '</div>';
+      grid.appendChild(card);
+    });
   </script>
 </body>
 </html>
