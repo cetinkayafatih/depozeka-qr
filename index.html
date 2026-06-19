@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DepoZeka — Koli QR Üreteci</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6faf8; color: #0b1020;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 60px; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .lead { color: #6b7280; font-size: 14px; margin: 0 0 20px; }
+    .bar { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; margin-bottom: 22px; }
+    .bar label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: 6px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    input[type=text] { flex: 1; min-width: 240px; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; font-family: ui-monospace, monospace; }
+    button { border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn { background: #0e5a52; color: #fff; }
+    .btn.alt { background: #fff; color: #0b1020; border: 1px solid #d1d5db; }
+    .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .card canvas { width: 150px; height: 150px; }
+    .barkod { font-family: ui-monospace, monospace; font-weight: 800; font-size: 15px; }
+    .tip { font-size: 11px; font-weight: 700; color: #fff; padding: 2px 9px; border-radius: 999px; }
+    .icerik { font-size: 12px; color: #6b7280; min-height: 32px; }
+    .url { font-size: 10px; color: #9ca3af; word-break: break-all; }
+    .actions { display: flex; gap: 6px; }
+    .actions a, .actions button { font-size: 12px; padding: 6px 10px; }
+    a.open { background: #f3f4f6; color: #0b1020; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; }
+    @media print {
+      .bar, .lead, h1, .noprint { display: none !important; }
+      body { background: #fff; }
+      .grid { grid-template-columns: repeat(3, 1fr); }
+      .card { border: 1px dashed #bbb; break-inside: avoid; }
+      .url { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📦 DepoZeka — Koli QR Üreteci</h1>
+    <p class="lead">Her QR, telefonla okutulduğunda kolinin <b>içeriğini gösteren mobil sayfayı</b> açar. Aşağıdaki adresi kontrol edip QR'ları yazdırın.</p>
+
+    <div class="bar noprint">
+      <label for="base">Yayın Adresi (urun.html'in bulunduğu klasör)</label>
+      <div class="row">
+        <input type="text" id="base" />
+        <button class="btn" id="apply">Yenile</button>
+        <button class="btn alt" id="print">🖨️ Tümünü Yazdır</button>
+      </div>
+      <p class="hint">Bu sayfayı GitHub Pages / Vercel'e koyduğunda adres otomatik dolar. Yerelde (file://) test ederken QR telefonla açılmaz — gerçek adrese koyduktan sonra QR üret.</p>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script>
+    var DEPO = window.DEPO;
+    var baseInput = document.getElementById("base");
+    var grid = document.getElementById("grid");
+
+    function defaultBase() {
+      var href = location.href.split("#")[0].split("?")[0];
+      return href.substring(0, href.lastIndexOf("/") + 1);
+    }
+    baseInput.value = defaultBase();
+
+    function targetUrl(base, barkod) {
+      if (!/\/$/.test(base)) base += "/";
+      return base + "urun.html?id=" + encodeURIComponent(barkod);
+    }
+
+    function build() {
+      var base = baseInput.value.trim() || defaultBase();
+      grid.innerHTML = "";
+      DEPO.kolis.forEach(function (k) {
+        var tip = DEPO.tip[k.tip];
+        var url = targetUrl(base, k.barkod);
+        var icerik = k.tip === "bitmis_urun" ? k.urun.ad : (k.kalemler.length + " çeşit malzeme · " + k.konum);
+
+        var card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML =
+          '<canvas></canvas>' +
+          '<div class="barkod">' + k.barkod + '</div>' +
+          '<span class="tip" style="background:' + tip.renk + '">' + tip.kisa + '</span>' +
+          '<div class="icerik">' + icerik + '</div>' +
+          '<div class="actions noprint">' +
+            '<a class="open" href="' + url + '" target="_blank" rel="noopener">Aç</a>' +
+            '<button class="btn alt dl">PNG</button>' +
+          '</div>' +
+          '<div class="url">' + url + '</div>';
+        grid.appendChild(card);
+
+        var canvas = card.querySelector("canvas");
+        QRCode.toCanvas(canvas, url, { width: 300, margin: 1, errorCorrectionLevel: "M" }, function (err) {
+          if (err) console.error(err);
+        });
+
+        card.querySelector(".dl").addEventListener("click", function () {
+          var a = document.createElement("a");
+          a.download = k.barkod + ".png";
+          a.href = canvas.toDataURL("image/png");
+          a.click();
+        });
+      });
+    }
+
+    document.getElementById("apply").addEventListener("click", build);
+    document.getElementById("print").addEventListener("click", function () { window.print(); });
+    build();
+  </script>
+</body>
+</html>

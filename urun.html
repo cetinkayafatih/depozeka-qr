@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0e5a52" />
+  <title>DepoZeka — Koli Bilgisi</title>
+  <style>
+    :root {
+      --ink: #0b1020; --muted: #6b7280; --line: #e5e7eb; --bg: #f6faf8; --card: #ffffff;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.45;
+    }
+    .wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+    .pad { padding: 0 16px; }
+
+    /* Üst bant */
+    .band { color: #fff; padding: 22px 16px 26px; }
+    .band .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .8; margin: 0; }
+    .band .barkod { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 30px; font-weight: 800; margin: 2px 0 2px; }
+    .band .sub { font-size: 14px; opacity: .9; margin: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chip { background: rgba(255,255,255,.18); backdrop-filter: blur(4px); padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; margin: -14px 16px 16px; box-shadow: 0 6px 24px rgba(11,16,32,.06); overflow: hidden; }
+    .card .inner { padding: 18px; }
+
+    h1.title { font-size: 20px; margin: 0; }
+    .modelline { color: var(--muted); font-size: 14px; margin: 2px 0 0; }
+
+    .sec-label { display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
+
+    /* hammadde liste */
+    .items { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; border-top: 1px solid var(--line); }
+    .item:first-child { border-top: none; }
+    .item .left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .dot { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; font-size: 18px; }
+    .item .ad { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item .meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+    .item .kod { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+    .tag { font-size: 10px; font-weight: 700; color: #fff; padding: 1px 7px; border-radius: 999px; }
+    .item .qty { font-size: 18px; font-weight: 800; text-align: right; white-space: nowrap; }
+    .item .qty small { font-size: 11px; font-weight: 500; color: var(--muted); }
+    .item .qsub { font-size: 11px; color: var(--muted); text-align: right; }
+
+    /* ürün mini grid */
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .grid3 > div { background: #fff; padding: 12px 8px; text-align: center; }
+    .grid3 .k { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .grid3 .v { font-size: 17px; font-weight: 800; margin-top: 2px; }
+    .swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); display: inline-block; vertical-align: middle; margin-right: 5px; }
+
+    /* kompozisyon */
+    .compbar { display: flex; height: 20px; border-radius: 999px; overflow: hidden; }
+    .compbar > span { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 700; }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .legend span { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .badge { font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 5px; }
+    .badge.cert { border-color: #bbf7d0; color: #15803d; background: #f0fdf4; }
+
+    .kv { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 14px; }
+    .kv span { color: var(--muted); }
+    .kv b { font-family: ui-monospace, monospace; color: var(--ink); }
+
+    .note { display: flex; gap: 8px; background: #f3f4f6; border-radius: 10px; padding: 10px 12px; margin-top: 14px; font-size: 13px; color: #4b5563; }
+
+    /* alt istatistik */
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
+    .stats > div { background: #fff; padding: 14px 10px; text-align: center; }
+    .stats .k { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .stats .v { font-size: 17px; font-weight: 800; margin-top: 3px; }
+
+    .foot { text-align: center; color: var(--muted); font-size: 12px; padding: 18px; }
+    .foot .logo { font-weight: 800; color: #0e5a52; }
+    .err { text-align: center; padding: 60px 24px; color: var(--muted); }
+    .err h2 { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app"></div>
+  <script src="data.js"></script>
+  <script>
+    var DEPO = window.DEPO;
+    var nf = new Intl.NumberFormat("tr-TR");
+    function num(n, d) { return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }).format(n); }
+    function agirlik(kg) { return kg >= 1000 ? num(kg / 1000, 1) + " ton" : num(kg, 1) + " kg"; }
+    function paraTL(v) { return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(v); }
+    function paraDoviz(v, d) { var s = d === "EUR" ? "€" : d === "USD" ? "$" : d; return num(v, 2) + " " + s; }
+    function tarih(s) {
+      var aylar = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+      var p = s.split("-"); return parseInt(p[2], 10) + " " + aylar[parseInt(p[1], 10) - 1] + " " + p[0];
+    }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+
+    function toplamAgirlik(k) {
+      if (k.tip === "bitmis_urun") return k.urun.cift_sayisi * k.urun.birim_agirlik_kg;
+      return k.kalemler.reduce(function (s, i) { return s + i.miktar * i.birim_agirlik_kg; }, 0);
+    }
+    function toplamDeger(k) {
+      if (k.tip === "bitmis_urun") return k.urun.cift_sayisi * k.urun.birim_fiyat;
+      return k.kalemler.reduce(function (s, i) { return s + i.miktar * i.birim_fiyat; }, 0);
+    }
+    function toplamAdet(k) {
+      if (k.tip === "bitmis_urun") return k.urun.cift_sayisi;
+      return k.kalemler.reduce(function (s, i) { return s + i.miktar; }, 0);
+    }
+
+    function getId() {
+      var p = new URLSearchParams(location.search);
+      return p.get("id") || p.get("koli") || (location.hash ? location.hash.slice(1) : "");
+    }
+
+    function render() {
+      var app = document.getElementById("app");
+      var id = getId();
+      var k = DEPO.kolis.filter(function (x) { return x.barkod === id || x.id === id; })[0];
+
+      if (!k) {
+        app.innerHTML =
+          '<div class="err"><div style="font-size:48px">📦</div><h2>Koli bulunamadı</h2>' +
+          '<p>Geçerli bir koli barkodu okutun.</p>' +
+          '<p style="font-size:12px">Örnek: <code>?id=KOLI-0005</code></p></div>';
+        document.title = "DepoZeka — Bulunamadı";
+        return;
+      }
+
+      var isUrun = k.tip === "bitmis_urun";
+      var tip = DEPO.tip[k.tip];
+      var durum = DEPO.durum[k.durum];
+      var grad = isUrun
+        ? "linear-gradient(135deg,#4c1d95 0%,#6d28d9 60%,#8b5cf6 100%)"
+        : "linear-gradient(135deg,#075985 0%,#0369a1 60%,#0ea5e9 100%)";
+      document.title = "DepoZeka — " + k.barkod;
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", isUrun ? "#6d28d9" : "#0369a1");
+
+      var body = "";
+
+      if (!isUrun) {
+        body +=
+          '<div class="sec-label">📂 Koli İçindekiler</div><div class="items">' +
+          k.kalemler.map(function (it) {
+            var a = DEPO.aileler[it.aile] || { renk: "#6b7280", label: it.aile };
+            return (
+              '<div class="item"><div class="left">' +
+                '<div class="dot" style="background:' + a.renk + '1a;color:' + a.renk + '">📦</div>' +
+                '<div style="min-width:0"><div class="ad">' + esc(it.ad) + '</div>' +
+                '<div class="meta"><span class="kod">' + esc(it.kod) + '</span>' +
+                '<span class="tag" style="background:' + a.renk + '">' + esc(a.label) + '</span></div></div>' +
+              '</div>' +
+              '<div><div class="qty">' + num(it.miktar) + ' <small>' + (DEPO.birim[it.birim] || it.birim) + '</small></div>' +
+              '<div class="qsub">' + agirlik(it.miktar * it.birim_agirlik_kg) + ' · ' + paraTL(it.miktar * it.birim_fiyat) + '</div></div>' +
+              '</div>'
+            );
+          }).join("") +
+          '</div>';
+      } else {
+        var u = k.urun;
+        body +=
+          '<h1 class="title">' + esc(u.ad) + '</h1>' +
+          '<p class="modelline">' + esc(u.model) + ' · Beden ' + esc(u.beden) + '</p>' +
+          '<div class="grid3" style="margin-top:14px">' +
+            '<div><div class="k">Çift Sayısı</div><div class="v">' + num(u.cift_sayisi) + '</div></div>' +
+            '<div><div class="k">Renk</div><div class="v" style="font-size:13px"><span class="swatch" style="background:' + u.renk_kodu + '"></span>' + esc(u.renk) + '</div></div>' +
+            '<div><div class="k">Beden</div><div class="v">' + esc(u.beden) + '</div></div>' +
+          '</div>';
+
+        if (u.kompozisyon && u.kompozisyon.length) {
+          body +=
+            '<div class="sec-label">🧵 Hammadde Kompozisyonu</div>' +
+            '<div class="compbar">' +
+            u.kompozisyon.map(function (c) {
+              return '<span style="width:' + c.oran + '%;background:' + c.renk + '">' + (c.oran >= 10 ? "%" + c.oran : "") + '</span>';
+            }).join("") +
+            '</div><div class="legend">' +
+            u.kompozisyon.map(function (c) {
+              return '<span><span class="swatch" style="background:' + c.renk + '"></span>' + esc(c.malzeme) + ' <b style="color:var(--ink)">%' + c.oran + '</b></span>';
+            }).join("") +
+            '</div>';
+        }
+
+        body += '<div class="badges">';
+        if (u.musteri) body += '<span class="badge">🌍 ' + esc(u.musteri) + (u.ulke ? " · " + esc(u.ulke) : "") + '</span>';
+        (u.sertifikalar || []).forEach(function (s) { body += '<span class="badge cert">🛡️ ' + esc(s) + '</span>'; });
+        body += '</div>';
+
+        if (u.siparis_no || u.lot) {
+          body += '<div class="kv">';
+          if (u.siparis_no) body += '<span>Sipariş: <b>' + esc(u.siparis_no) + '</b></span>';
+          if (u.lot) body += '<span>Lot: <b>' + esc(u.lot) + '</b></span>';
+          body += '</div>';
+        }
+      }
+
+      if (k.notlar) body += '<div class="note">📝 ' + esc(k.notlar) + '</div>';
+
+      var html =
+        '<div class="band" style="background:' + grad + '">' +
+          '<p class="eyebrow">' + tip.label + '</p>' +
+          '<p class="barkod">' + esc(k.barkod) + '</p>' +
+          '<p class="sub">' + (isUrun ? esc(k.urun.ad) : k.kalemler.length + ' çeşit malzeme') + '</p>' +
+          '<div class="chips">' +
+            '<span class="chip" style="background:' + durum.renk + '">' + durum.label + '</span>' +
+            '<span class="chip">🏬 ' + esc(k.konum) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card"><div class="inner">' + body + '</div>' +
+          '<div class="stats">' +
+            '<div><div class="k">' + (isUrun ? "Çift Sayısı" : "Toplam Adet") + '</div><div class="v">' + num(toplamAdet(k)) + '</div></div>' +
+            '<div><div class="k">Toplam Ağırlık</div><div class="v">' + agirlik(toplamAgirlik(k)) + '</div></div>' +
+            '<div><div class="k">Toplam Değer</div><div class="v">' + (isUrun ? paraDoviz(toplamDeger(k), k.urun.doviz) : paraTL(toplamDeger(k))) + '</div></div>' +
+            '<div><div class="k">Oluşturma</div><div class="v" style="font-size:14px">' + tarih(k.olusturma_tarihi) + '</div></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="foot"><span class="logo">DepoZeka</span> · Çorap Fabrikası Deposu<br>Bu sayfa koli barkodu okutularak açılmıştır.</div>';
+
+      app.innerHTML = html;
+    }
+    render();
+  </script>
+</body>
+</html>
