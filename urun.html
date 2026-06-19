@@ -35,7 +35,8 @@
     @media(min-width:768px){ .content { flex-direction:row; } }
     .qrwrap { display:flex; flex-direction:column; align-items:center; gap:12px; }
     .qrbox { border:1px solid var(--line); border-radius:10px; background:#fff; padding:16px; }
-    .qrbox canvas { width:170px; height:170px; display:block; }
+    .qrbox > div { width:170px; height:170px; }
+    .qrbox canvas, .qrbox img { width:170px !important; height:170px !important; display:block; }
     .qrtitle { font-size:14px; font-weight:700; text-align:center; }
     .qrsub { font-size:12px; color:var(--muted); text-align:center; margin-top:2px; }
     .btn { border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:13px; background:#fff;
@@ -104,7 +105,7 @@
 
   <script src="data.js"></script>
   <script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     var DEPO = window.DEPO;
     function num(n,d){ return new Intl.NumberFormat("tr-TR",{minimumFractionDigits:d||0,maximumFractionDigits:d||0}).format(n); }
@@ -197,7 +198,7 @@
             '</div>'+
           '</div>'+
           '<div class="content">'+
-            '<div class="qrwrap"><div class="qrbox"><canvas id="qr"></canvas></div>'+
+            '<div class="qrwrap"><div class="qrbox"><div id="qr"></div></div>'+
               '<div><div class="qrtitle mono">'+esc(k.barkod)+'</div><div class="qrsub">'+tip.label+'</div></div>'+
               '<button class="btn" id="dl">'+ic("download",14)+' PNG İndir</button></div>'+
             '<div class="right">'+right+'</div>'+
@@ -212,10 +213,15 @@
 
       // QR (uygulamadaki gibi DZ:K: kodu) + PNG indir
       if(window.QRCode){
-        var canvas=document.getElementById("qr");
-        QRCode.toCanvas(canvas,"DZ:K:"+k.barkod,{width:340,margin:1,errorCorrectionLevel:"M"},function(e){if(e)console.error(e);});
+        var box=document.getElementById("qr");
+        box.innerHTML="";
+        new QRCode(box,{text:"DZ:K:"+k.barkod,width:180,height:180,colorDark:"#000000",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+        var cv=box.querySelector("canvas"); if(cv){ var im=box.querySelector("img"); if(im) im.remove(); }
         var dl=document.getElementById("dl");
-        if(dl) dl.addEventListener("click",function(){var a=document.createElement("a");a.download=k.barkod+"-qr.png";a.href=canvas.toDataURL("image/png");a.click();});
+        if(dl) dl.addEventListener("click",function(){
+          var c=box.querySelector("canvas"); var src=c?c.toDataURL("image/png"):((box.querySelector("img")||{}).src||"");
+          if(src){var a=document.createElement("a");a.download=k.barkod+"-qr.png";a.href=src;a.click();}
+        });
       }
       afterRender();
     }

@@ -21,7 +21,8 @@
     .hint { font-size: 12px; color: #9ca3af; margin-top: 8px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
     .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .card canvas { width: 150px; height: 150px; }
+    .card .qrholder { width: 150px; height: 150px; }
+    .card .qrholder canvas, .card .qrholder img { width: 150px !important; height: 150px !important; display: block; }
     .barkod { font-family: ui-monospace, monospace; font-weight: 800; font-size: 15px; }
     .tip { font-size: 11px; font-weight: 700; color: #fff; padding: 2px 9px; border-radius: 999px; }
     .icerik { font-size: 12px; color: #6b7280; min-height: 32px; }
@@ -57,7 +58,7 @@
   </div>
 
   <script src="data.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script>
     var DEPO = window.DEPO;
     var baseInput = document.getElementById("base");
@@ -85,7 +86,7 @@
         var card = document.createElement("div");
         card.className = "card";
         card.innerHTML =
-          '<canvas></canvas>' +
+          '<div class="qrholder"></div>' +
           '<div class="barkod">' + k.barkod + '</div>' +
           '<span class="tip" style="background:' + tip.renk + '">' + tip.kisa + '</span>' +
           '<div class="icerik">' + icerik + '</div>' +
@@ -96,16 +97,15 @@
           '<div class="url">' + url + '</div>';
         grid.appendChild(card);
 
-        var canvas = card.querySelector("canvas");
-        QRCode.toCanvas(canvas, url, { width: 300, margin: 1, errorCorrectionLevel: "M" }, function (err) {
-          if (err) console.error(err);
-        });
+        var holder = card.querySelector(".qrholder");
+        new QRCode(holder, { text: url, width: 300, height: 300, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+        var cv = holder.querySelector("canvas");
+        if (cv) { var im = holder.querySelector("img"); if (im) im.remove(); }
 
         card.querySelector(".dl").addEventListener("click", function () {
-          var a = document.createElement("a");
-          a.download = k.barkod + ".png";
-          a.href = canvas.toDataURL("image/png");
-          a.click();
+          var c = holder.querySelector("canvas");
+          var src = c ? c.toDataURL("image/png") : ((holder.querySelector("img") || {}).src || "");
+          if (src) { var a = document.createElement("a"); a.download = k.barkod + ".png"; a.href = src; a.click(); }
         });
       });
     }
